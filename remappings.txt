@@ -1,0 +1,4 @@
+forge-gas-snapshot/=lib/forge-gas-snapshot/src/
+forge-std/=lib/forge-std/src/
+@openzeppelin/=lib/openzeppelin-contracts/
+@aerodrome/=lib/aerodrome-contracts/
