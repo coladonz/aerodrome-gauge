@@ -6,6 +6,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IGauge} from "@aerodrome/contracts/interfaces/IGauge.sol";
 import {IPool} from "@aerodrome/contracts/interfaces/IPool.sol";
 import {IRouter} from "@aerodrome/contracts/interfaces/IRouter.sol";
+import "forge-std/console.sol";
 
 /// @title AeroGauge
 /// @author @coladonz
@@ -91,23 +92,28 @@ contract AeroGauge {
 
     /// @notice Withdraw assets from the gauge.
     /// @param gauge The address of the gauge.
-    function _withdraw(IGauge gauge) internal {
+    function _withdraw(IGauge gauge) internal returns (uint256 withdrawAmount) {
+        uint256 reward = _pendingReward(gauge, msg.sender);
         uint256 amount = userInfos[msg.sender][address(gauge)].amount;
+
         userInfos[msg.sender][address(gauge)].amount = 0;
         gaugeInfos[address(gauge)].totalShare -= amount;
 
-        uint256 reward = _pendingReward(gauge, msg.sender);
-        IERC20(gauge.stakingToken()).safeTransfer(msg.sender, amount + reward);
+        withdrawAmount = amount + reward;
+        gauge.withdraw(withdrawAmount);
 
-        emit Withdraw(msg.sender, address(gauge), amount + reward);
+        IERC20(gauge.stakingToken()).safeTransfer(msg.sender, withdrawAmount);
+
+        emit Withdraw(msg.sender, address(gauge), withdrawAmount);
     }
 
     /// @notice Harvest rewards from the gauge.
     /// @param gauge The address of the gauge.
     function _harvest(IGauge gauge) internal {
-        uint rewardEarned = IGauge(gauge).rewards(address(this));
+        uint rewardEarned = IGauge(gauge).earned(address(this));
         IGauge(gauge).getReward(address(this));
 
+        if (rewardEarned == 0) return;
         uint rewardLiquidity = _zapIn(IERC20(gauge.rewardToken()), rewardEarned, gauge);
 
         // Update GaugeInfo
@@ -158,10 +164,6 @@ contract AeroGauge {
             address(this),
             true
         );
-
-        IERC20 stakingToken = IERC20(gauge.stakingToken());
-        stakingToken.forceApprove(address(gauge), liquidity);
-        gauge.deposit(liquidity);
     }
 
     /// @notice Create zap in params.
