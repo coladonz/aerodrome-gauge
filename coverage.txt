@@ -1,94 +1,100 @@
 Compiling 31 files with Solc 0.8.26
-Solc 0.8.26 finished in 1.67s
+Solc 0.8.26 finished in 1.56s
 Compiler run successful!
 Analysing contracts...
 Running tests...
 
 Ran 8 tests for test/AeroGauge.t.sol:AeroGaugeTest
-[PASS] test_deposit_lp_into_gauge_directly() (gas: 549104)
-[PASS] test_deposit_zap_aero_to_weth_usdc_lp_and_deposit_into_gauge() (gas: 715773)
-[PASS] test_fuzz_deposit(uint256) (runs: 259, μ: 817837, ~: 817898)
-[PASS] test_fuzz_deposit_harvest(uint256,uint256) (runs: 259, μ: 1385595, ~: 1399802)
-[PASS] test_fuzz_deposit_harvest_withdraw(uint256,uint256) (runs: 259, μ: 1537200, ~: 1551407)
-[PASS] test_fuzz_deposit_lp(uint256) (runs: 259, μ: 556293, ~: 556354)
-[PASS] test_harvest_rewards_should_zap_aero_rewards_into_weth_usdc_lp_and_deposit_into_gauge() (gas: 1290830)
-[PASS] test_withdraw_should_withdraw_lp_from_gauge() (gas: 1419635)
-Suite result: ok. 8 passed; 0 failed; 0 skipped; finished in 1.76s (4.84s CPU time)
+[PASS] test_deposit_lp_into_gauge_directly() (gas: 542574)
+[PASS] test_deposit_zap_aero_to_weth_usdc_lp_and_deposit_into_gauge() (gas: 695623)
+[PASS] test_fuzz_deposit(uint256) (runs: 259, μ: 798501, ~: 798567)
+[PASS] test_fuzz_deposit_harvest(uint256,uint256) (runs: 259, μ: 1374708, ~: 1359746)
+[PASS] test_fuzz_deposit_harvest_withdraw(uint256,uint256) (runs: 259, μ: 1526312, ~: 1511351)
+[PASS] test_fuzz_deposit_lp(uint256) (runs: 259, μ: 549758, ~: 549824)
+[PASS] test_harvest_rewards_should_zap_aero_rewards_into_weth_usdc_lp_and_deposit_into_gauge() (gas: 1297639)
+[PASS] test_withdraw_should_withdraw_lp_from_gauge() (gas: 1410224)
+Suite result: ok. 8 passed; 0 failed; 0 skipped; finished in 1.73s (4.68s CPU time)
 
-Ran 1 test suite in 1.76s (1.76s CPU time): 8 tests passed, 0 failed, 0 skipped (8 total tests)
+Ran 1 test suite in 1.73s (1.73s CPU time): 8 tests passed, 0 failed, 0 skipped (8 total tests)
 Uncovered for src/AeroGauge.sol:
-- Branch (branch: 0, path: 0) (location: source ID 29, lines 59..60, bytes 2421..2440, hits: 0)
-- Statement (location: source ID 29, lines 59..60, bytes 2421..2440, hits: 0)
-
-Anchors for Contract "IERC1363" (solc 0.8.26, source ID 23):
-
-Anchors for Contract "safeconsole" (solc 0.8.26, source ID 22):
 
 Anchors for Contract "ScriptBase" (solc 0.8.26, source ID 4):
 
-Anchors for Contract "IMulticall3" (solc 0.8.26, source ID 21):
+Anchors for Contract "IPool" (solc 0.8.26, source ID 1):
 
-Anchors for Contract "TestBase" (solc 0.8.26, source ID 4):
+Anchors for Contract "StdUtils" (solc 0.8.26, source ID 16):
 
-Anchors for Contract "stdStorageSafe" (solc 0.8.26, source ID 13):
-
-Anchors for Contract "IRouter" (solc 0.8.26, source ID 2):
-
-Anchors for Contract "SafeERC20" (solc 0.8.26, source ID 27):
-
-Anchors for Contract "IERC165" (solc 0.8.26, source ID 28):
-
-Anchors for Contract "IGauge" (solc 0.8.26, source ID 0):
-
-Anchors for Contract "stdMath" (solc 0.8.26, source ID 12):
-
-Anchors for Contract "stdStorage" (solc 0.8.26, source ID 13):
-
-Anchors for Contract "StdChains" (solc 0.8.26, source ID 6):
-
-Anchors for Contract "Test" (solc 0.8.26, source ID 17):
+Anchors for Contract "StdConstants" (solc 0.8.26, source ID 8):
 
 Anchors for Contract "console" (solc 0.8.26, source ID 19):
 
-Anchors for Contract "IPool" (solc 0.8.26, source ID 1):
-
 Anchors for Contract "stdError" (solc 0.8.26, source ID 9):
 
-Anchors for Contract "StdInvariant" (solc 0.8.26, source ID 10):
-
-Anchors for Contract "stdJson" (solc 0.8.26, source ID 11):
-
-Anchors for Contract "IWETH" (solc 0.8.26, source ID 3):
-
-Anchors for Contract "StdStyle" (solc 0.8.26, source ID 14):
-
-Anchors for Contract "StdCheatsSafe" (solc 0.8.26, source ID 7):
-
-Anchors for Contract "StdCheats" (solc 0.8.26, source ID 7):
+Anchors for Contract "StdAssertions" (solc 0.8.26, source ID 5):
 
 Anchors for Contract "Vm" (solc 0.8.26, source ID 18):
 
+Anchors for Contract "stdStorageSafe" (solc 0.8.26, source ID 13):
+
+Anchors for Contract "stdStorage" (solc 0.8.26, source ID 13):
+
+Anchors for Contract "IWETH" (solc 0.8.26, source ID 3):
+
+Anchors for Contract "TestBase" (solc 0.8.26, source ID 4):
+
+Anchors for Contract "IERC165" (solc 0.8.26, source ID 28):
+
+Anchors for Contract "IMulticall3" (solc 0.8.26, source ID 21):
+
+Anchors for Contract "stdMath" (solc 0.8.26, source ID 12):
+
 Anchors for Contract "CommonBase" (solc 0.8.26, source ID 4):
+
+Anchors for Contract "StdChains" (solc 0.8.26, source ID 6):
+
+Anchors for Contract "StdInvariant" (solc 0.8.26, source ID 10):
+
+Anchors for Contract "safeconsole" (solc 0.8.26, source ID 22):
+
+Anchors for Contract "AeroGaugeTest" (solc 0.8.26, source ID 30):
+
+Anchors for Contract "stdToml" (solc 0.8.26, source ID 15):
+
+Anchors for Contract "StdCheatsSafe" (solc 0.8.26, source ID 7):
+
+Anchors for Contract "IRouter" (solc 0.8.26, source ID 2):
+
+Anchors for Contract "stdJson" (solc 0.8.26, source ID 11):
+
+Anchors for Contract "IERC20" (solc 0.8.26, source ID 26):
+
+Anchors for Contract "VmSafe" (solc 0.8.26, source ID 18):
+
+Anchors for Contract "StdStyle" (solc 0.8.26, source ID 14):
+
+Anchors for Contract "IERC1363" (solc 0.8.26, source ID 23):
+
+Anchors for Contract "IGauge" (solc 0.8.26, source ID 0):
 
 Anchors for Contract "AeroGauge" (solc 0.8.26, source ID 29):
 - IC 205 -> Item 0
 - Creation code
-  - Refers to item: Line (location: source ID 29, lines 54..64, bytes 2266..2591, hits: 1040)
+  - Refers to item: Line (location: source ID 29, lines 54..64, bytes 2266..2591, hits: 1041)
 - IC 205 -> Item 1
 - Creation code
-  - Refers to item: Function "deposit" (location: source ID 29, lines 54..64, bytes 2266..2591, hits: 1040)
+  - Refers to item: Function "deposit" (location: source ID 29, lines 54..64, bytes 2266..2591, hits: 1041)
 - IC 535 -> Item 2
 - Creation code
-  - Refers to item: Line (location: source ID 29, lines 59..60, bytes 2408..2419, hits: 1040)
+  - Refers to item: Line (location: source ID 29, lines 59..60, bytes 2408..2419, hits: 1041)
 - IC 535 -> Item 3
 - Creation code
-  - Refers to item: Statement (location: source ID 29, lines 59..60, bytes 2408..2419, hits: 1040)
+  - Refers to item: Statement (location: source ID 29, lines 59..60, bytes 2408..2419, hits: 1041)
 - IC 542 -> Item 4
 - Creation code
-  - Refers to item: Branch (branch: 0, path: 0) (location: source ID 29, lines 59..60, bytes 2421..2440, hits: 0)
+  - Refers to item: Branch (branch: 0, path: 0) (location: source ID 29, lines 59..60, bytes 2421..2440, hits: 1)
 - IC 542 -> Item 5
 - Creation code
-  - Refers to item: Statement (location: source ID 29, lines 59..60, bytes 2421..2440, hits: 0)
+  - Refers to item: Statement (location: source ID 29, lines 59..60, bytes 2421..2440, hits: 1)
 - IC 592 -> Item 6
 - Creation code
   - Refers to item: Line (location: source ID 29, lines 60..61, bytes 2450..2470, hits: 1040)
@@ -552,17 +558,9 @@ Anchors for Contract "AeroGauge" (solc 0.8.26, source ID 29):
 - Creation code
   - Refers to item: Statement (location: source ID 29, lines 264..265, bytes 9854..9905, hits: 1818)
 
-Anchors for Contract "AeroGaugeTest" (solc 0.8.26, source ID 30):
+Anchors for Contract "StdCheats" (solc 0.8.26, source ID 7):
 
-Anchors for Contract "VmSafe" (solc 0.8.26, source ID 18):
+Anchors for Contract "SafeERC20" (solc 0.8.26, source ID 27):
 
-Anchors for Contract "StdAssertions" (solc 0.8.26, source ID 5):
-
-Anchors for Contract "StdUtils" (solc 0.8.26, source ID 16):
-
-Anchors for Contract "StdConstants" (solc 0.8.26, source ID 8):
-
-Anchors for Contract "stdToml" (solc 0.8.26, source ID 15):
-
-Anchors for Contract "IERC20" (solc 0.8.26, source ID 26):
+Anchors for Contract "Test" (solc 0.8.26, source ID 17):
 

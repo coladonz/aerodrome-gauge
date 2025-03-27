@@ -27,6 +27,9 @@ contract AeroGaugeTest is Test {
     }
 
     function test_deposit_zap_aero_to_weth_usdc_lp_and_deposit_into_gauge() public {
+        vm.expectRevert(AeroGauge.ZeroAmount.selector);
+        gaugeM.deposit(IGauge(WETH_USDC_GAUGE), AERO, 0);
+
         uint beforeBal = AERO.balanceOf(address(this));
         uint depositAmount = 100e18;
         AERO.approve(address(gaugeM), depositAmount);
