@@ -42,6 +42,9 @@ contract AeroGauge {
     /// @dev Event emitted when a user harvests rewards from the gauge.
     event Harvest(address indexed gauge, uint256 amount);
 
+    /// @dev Error emitted when the amount is zero.
+    error ZeroAmount();
+
     /// @notice Deposit assets into the gauge.
     /// @dev It should zap in the assets into the gauge.
     /// @param gauge The address of the gauge.
@@ -53,24 +56,17 @@ contract AeroGauge {
         IERC20 asset,
         uint256 amount
     ) external returns (uint256 liquidity) {
-        _harvest(gauge);
-
+        if (amount == 0) revert ZeroAmount();
+        _claimRewards(gauge);
         asset.safeTransferFrom(msg.sender, address(this), amount);
-        liquidity = _zapIn(asset, amount, gauge);
-
-        UserInfo storage userInfo = userInfos[msg.sender][address(gauge)];
-        GaugeInfo storage gaugeInfo = gaugeInfos[address(gauge)];
-        userInfo.amount += liquidity;
-        userInfo.rewardDebt += (liquidity * gaugeInfo.rewardPerShare) / 1e18;
-        gaugeInfo.totalShare += liquidity;
-
-        emit Deposit(msg.sender, address(gauge), liquidity);
+        return _deposit(asset, gauge, amount);
     }
 
     /// @notice Harvest rewards from the gauge.
     /// @dev It should claim pending rewards from the gauge and zap in the rewards into the gauge.
     /// @param gauge The address of the gauge.
     function harvest(IGauge gauge) external {
+        _claimRewards(gauge);
         _harvest(gauge);
     }
 
@@ -78,8 +74,12 @@ contract AeroGauge {
     /// @dev It should harvest rewards from the gauge and withdraw the staking token and pending reward.
     /// @param gauge The address of the gauge.
     function withdraw(IGauge gauge) external {
-        _harvest(gauge);
+        _claimRewards(gauge);
         _withdraw(gauge);
+    }
+
+    function claimVaultRewards(IGauge gauge) external {
+        _claimRewards(gauge);
     }
 
     /// @notice Get the pending reward of the user.
@@ -92,35 +92,69 @@ contract AeroGauge {
 
     /// @notice Withdraw assets from the gauge.
     /// @param gauge The address of the gauge.
-    function _withdraw(IGauge gauge) internal returns (uint256 withdrawAmount) {
-        uint256 reward = _pendingReward(gauge, msg.sender);
-        uint256 amount = userInfos[msg.sender][address(gauge)].amount;
+    function _withdraw(IGauge gauge) internal returns (uint256 lpAmount, uint256 reward) {
+        reward = _pendingReward(gauge, msg.sender);
+        lpAmount = userInfos[msg.sender][address(gauge)].amount;
 
         userInfos[msg.sender][address(gauge)].amount = 0;
-        gaugeInfos[address(gauge)].totalShare -= amount;
+        gaugeInfos[address(gauge)].totalShare -= lpAmount;
 
-        withdrawAmount = amount + reward;
-        gauge.withdraw(withdrawAmount);
+        gauge.withdraw(lpAmount);
 
-        IERC20(gauge.stakingToken()).safeTransfer(msg.sender, withdrawAmount);
+        IERC20(gauge.stakingToken()).safeTransfer(msg.sender, lpAmount);
+        IERC20(gauge.rewardToken()).safeTransfer(msg.sender, reward);
 
-        emit Withdraw(msg.sender, address(gauge), withdrawAmount);
+        emit Withdraw(msg.sender, address(gauge), lpAmount);
     }
 
     /// @notice Harvest rewards from the gauge.
     /// @param gauge The address of the gauge.
     function _harvest(IGauge gauge) internal {
-        uint rewardEarned = IGauge(gauge).earned(address(this));
-        IGauge(gauge).getReward(address(this));
-
-        if (rewardEarned == 0) return;
-        uint rewardLiquidity = _zapIn(IERC20(gauge.rewardToken()), rewardEarned, gauge);
-
-        // Update GaugeInfo
-        GaugeInfo storage gaugeInfo = gaugeInfos[address(gauge)];
-        gaugeInfo.rewardPerShare += (rewardLiquidity * 1e18) / gaugeInfo.totalShare;
+        uint pendingRewards = _pendingReward(gauge, msg.sender);
+        if (pendingRewards == 0) return;
+        userInfos[msg.sender][address(gauge)].rewardDebt += pendingRewards;
+        uint rewardLiquidity = _deposit(
+            IERC20(gauge.rewardToken()),
+            gauge,
+            pendingRewards
+        );
 
         emit Harvest(address(gauge), rewardLiquidity);
+    }
+
+    /// @notice Deposit assets into the gauge.
+    /// @param asset The address of the asset.
+    /// @param gauge The address of the gauge.
+    /// @param amount The amount of the asset to deposit.
+    /// @return liquidity The amount of liquidity received.
+    function _deposit(
+        IERC20 asset,
+        IGauge gauge,
+        uint256 amount
+    ) internal returns (uint liquidity) {
+        liquidity = _zapInGauge(asset, amount, gauge);
+        UserInfo storage userInfo = userInfos[msg.sender][address(gauge)];
+        GaugeInfo storage gaugeInfo = gaugeInfos[address(gauge)];
+        userInfo.amount += liquidity;
+        userInfo.rewardDebt += (liquidity * gaugeInfo.rewardPerShare) / 1e18;
+        gaugeInfo.totalShare += liquidity;
+
+        emit Deposit(msg.sender, address(gauge), liquidity);
+    }
+
+    /// @notice Claim rewards from the gauge.
+    /// @param gauge The address of the gauge.
+    /// @return rewardEarned The amount of rewards earned.
+    function _claimRewards(IGauge gauge) internal returns (uint256 rewardEarned) {
+        IERC20 rewardToken = IERC20(gauge.rewardToken());
+        uint beforeBalance = rewardToken.balanceOf(address(this));
+        gauge.getReward(address(this));
+        rewardEarned = rewardToken.balanceOf(address(this)) - beforeBalance;
+
+        GaugeInfo storage gaugeInfo = gaugeInfos[address(gauge)];
+
+        if (rewardEarned == 0) return 0;
+        gaugeInfo.rewardPerShare += (rewardEarned * 1e18) / gaugeInfo.totalShare;
     }
 
     /// @notice Zap in the assets into the gauge.
@@ -128,13 +162,18 @@ contract AeroGauge {
     /// @param amount The amount of the asset to zap in.
     /// @param gauge The address of the gauge.
     /// @return liquidity The amount of liquidity received.
-    function _zapIn(
+    function _zapInGauge(
         IERC20 asset,
         uint amount,
         IGauge gauge
     ) internal returns (uint liquidity) {
-        asset.forceApprove(address(router), amount);
+        if (address(asset) == address(gauge.stakingToken())) {
+            asset.forceApprove(address(gauge), amount);
+            gauge.deposit(amount);
+            return amount;
+        }
 
+        asset.forceApprove(address(router), amount);
         IPool pool = IPool(gauge.stakingToken());
         IERC20 token0 = IERC20(pool.token0());
         IERC20 token1 = IERC20(pool.token1());
@@ -220,9 +259,8 @@ contract AeroGauge {
     /// @return The pending reward of the user.
     function _pendingReward(IGauge gauge, address user) internal view returns (uint256) {
         UserInfo storage userInfo = userInfos[user][address(gauge)];
-        return
-            (userInfo.amount * gaugeInfos[address(gauge)].rewardPerShare) /
-            1e18 -
-            userInfo.rewardDebt;
+        GaugeInfo storage gaugeInfo = gaugeInfos[address(gauge)];
+        if (gaugeInfo.totalShare == 0) return 0;
+        return (userInfo.amount * gaugeInfo.rewardPerShare) / 1e18 - userInfo.rewardDebt;
     }
 }
