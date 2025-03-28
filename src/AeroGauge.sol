@@ -6,7 +6,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IGauge} from "@aerodrome/contracts/interfaces/IGauge.sol";
 import {IPool} from "@aerodrome/contracts/interfaces/IPool.sol";
 import {IRouter} from "@aerodrome/contracts/interfaces/IRouter.sol";
-import "forge-std/console.sol";
+import {IPoolFactory} from "@aerodrome/contracts/interfaces/factories/IPoolFactory.sol";
 
 /// @title AeroGauge
 /// @author @coladonz
@@ -28,7 +28,8 @@ contract AeroGauge {
 
     uint256 constant MAX_BPS = 10_000;
     IRouter public constant router = IRouter(0xcF77a3Ba9A5CA399B7c97c74d54e5b1Beb874E43);
-    address public constant factory = 0x420DD381b31aEf6683db6B902084cB0FFECe40Da;
+    IPoolFactory public constant factory =
+        IPoolFactory(0x420DD381b31aEf6683db6B902084cB0FFECe40Da);
 
     /// @dev userInfos is a mapping from user to gauge to UserInfo.
     mapping(address user => mapping(address gauge => UserInfo)) public userInfos;
@@ -42,8 +43,9 @@ contract AeroGauge {
     /// @dev Event emitted when a user harvests rewards from the gauge.
     event Harvest(address indexed gauge, uint256 amount);
 
-    /// @dev Error emitted when the amount is zero.
+    /// @dev Errors
     error ZeroAmount();
+    error InvalidRoute();
 
     /// @notice Deposit assets into the gauge.
     /// @dev It should zap in the assets into the gauge.
@@ -178,16 +180,28 @@ contract AeroGauge {
         IERC20 token0 = IERC20(pool.token0());
         IERC20 token1 = IERC20(pool.token1());
 
+        bool stable = _hasPool(address(asset), address(token0));
         IRouter.Route[] memory routesA = new IRouter.Route[](1);
-        routesA[0] = IRouter.Route(address(asset), address(token0), false, factory);
+        routesA[0] = IRouter.Route(
+            address(asset),
+            address(token0),
+            stable,
+            address(factory)
+        );
 
+        stable = _hasPool(address(asset), address(token1));
         IRouter.Route[] memory routesB = new IRouter.Route[](1);
-        routesB[0] = IRouter.Route(address(asset), address(token1), false, factory);
+        routesB[0] = IRouter.Route(
+            address(asset),
+            address(token1),
+            stable,
+            address(factory)
+        );
 
         IRouter.Zap memory zap = _createZapInParams(
             token0,
             token1,
-            false,
+            pool.stable(),
             amount,
             routesA,
             routesB
@@ -203,6 +217,19 @@ contract AeroGauge {
             address(this),
             true
         );
+    }
+
+    /// @notice Check if the pool exists.
+    /// @dev Stable Pool is preferred, it should revert if the pool does not exist.
+    /// @param token0 The address of the first token.
+    /// @param token1 The address of the second token.
+    /// @return stable Whether the pool is stable.
+    function _hasPool(address token0, address token1) internal view returns (bool) {
+        address stablePool = factory.getPool(token0, token1, true);
+        address volatilePool = factory.getPool(token0, token1, false);
+        if (stablePool != address(0)) return true;
+        if (volatilePool != address(0)) return false;
+        revert InvalidRoute();
     }
 
     /// @notice Create zap in params.
@@ -229,8 +256,8 @@ contract AeroGauge {
         ) = router.generateZapInParams(
                 address(token0),
                 address(token1),
-                false,
-                factory,
+                stable,
+                address(factory),
                 amount / 2,
                 amount / 2,
                 routesA,
@@ -244,8 +271,8 @@ contract AeroGauge {
             IRouter.Zap(
                 address(token0),
                 address(token1),
-                false,
-                factory,
+                stable,
+                address(factory),
                 amountOutMinA,
                 amountOutMinB,
                 amountAMin,

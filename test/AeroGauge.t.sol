@@ -8,6 +8,7 @@ contract AeroGaugeTest is Test {
     IERC20 public constant USDC = IERC20(0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913);
     IERC20 public constant WETH = IERC20(0x4200000000000000000000000000000000000006);
     IERC20 public constant AERO = IERC20(0x940181a94A35A4569E4529A3CDfB74e38FD98631);
+    IERC20 public constant BALD = IERC20(0x27D2DECb4bFC9C76F0309b8E88dec3a601Fe25a8);
     IPool public constant USDC_AERO = IPool(0x6cDcb1C4A4D1C3C6d054b27AC5B77e89eAFb971d);
     IPool public constant WETH_AERO = IPool(0x7f670f78B17dEC44d5Ef68a48740b6f8849cc2e6);
     IERC20 public constant WETH_USDC = IERC20(0xcDAC0d6c6C59727a65F871236188350531885C43);
@@ -24,6 +25,14 @@ contract AeroGaugeTest is Test {
         gaugeM = new AeroGauge();
 
         deal(address(AERO), address(this), 1_000_000e18);
+    }
+
+    function test_deposit_invalid_route() public {
+        uint depositAmount = 1_000e18;
+        deal(address(BALD), address(this), depositAmount);
+        BALD.approve(address(gaugeM), depositAmount);
+        vm.expectRevert(AeroGauge.InvalidRoute.selector);
+        gaugeM.deposit(IGauge(WETH_USDC_GAUGE), BALD, depositAmount);
     }
 
     function test_deposit_zap_aero_to_weth_usdc_lp_and_deposit_into_gauge() public {
